@@ -9,7 +9,7 @@ import { CalculationInput } from '@/lib/calculator/engine';
 
 interface TransportFormProps {
   data: CalculationInput['transport'];
-  onChange: (category: keyof CalculationInput, subCategory: string, field: string, value: any) => void;
+  onChange: (category: keyof CalculationInput, subCategory: string, field: string, value: string | number) => void;
   onNext: () => void;
 }
 

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ShoppingBag, Recycle, Coins, Bike, Bus, Leaf, ArrowUpRight } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
 import { MallItem, MarketItem } from "@/types";
 import { MallItemCard } from "@/components/recommendations/MallItemCard";
 import { MarketItemCard } from "@/components/recommendations/MarketItemCard";
@@ -17,7 +18,7 @@ import { MarketItemCard } from "@/components/recommendations/MarketItemCard";
 export default function RecommendationsPage() {
   const [activeTab, setActiveTab] = useState('mall');
   const [credits, setCredits] = useState<number>(0);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [mallItems, setMallItems] = useState<MallItem[]>([]);
   const [marketItems, setMarketItems] = useState<MarketItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,25 +33,6 @@ export default function RecommendationsPage() {
     image_url: ''
   });
 
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await checkUser();
-      // Fetch items in parallel
-      await Promise.all([fetchMallItems(), fetchMarketItems()]);
-      setLoading(false);
-    };
-    init();
-  }, []);
-
-  const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      setUser(session.user);
-      fetchCredits(session.user.id);
-    }
-  };
-
   const fetchCredits = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
@@ -63,6 +45,14 @@ export default function RecommendationsPage() {
     }
   };
 
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setUser(session.user);
+      fetchCredits(session.user.id);
+    }
+  };
+
   const fetchMallItems = async () => {
     const { data } = await supabase.from('mall_items').select('*').gt('stock', 0);
     if (data) setMallItems(data);
@@ -72,6 +62,18 @@ export default function RecommendationsPage() {
     const { data } = await supabase.from('marketplace_items').select('*').eq('status', 'active').order('created_at', { ascending: false });
     if (data) setMarketItems(data);
   };
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      await checkUser();
+      // Fetch items in parallel
+      await Promise.all([fetchMallItems(), fetchMarketItems()]);
+      setLoading(false);
+    };
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEarnCredits = async (amount: number, description: string) => {
     if (!user) {

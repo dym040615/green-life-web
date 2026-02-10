@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Coins } from "lucide-react";
 import Image from "next/image";
+import { User } from "@supabase/supabase-js";
 
 interface MallItemCardProps {
   item: MallItem;
-  user: any;
+  user: User | null;
   onRedeem: (item: MallItem) => void;
 }
 

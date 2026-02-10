@@ -1,5 +1,4 @@
 import { calculateCarbonFootprint, CalculationInput } from './engine';
-import { CARBON_FACTORS } from '@/data/carbon-factors';
 
 describe('Carbon Footprint Calculator Engine', () => {
   it('should calculate transport footprint correctly for private gasoline car', () => {

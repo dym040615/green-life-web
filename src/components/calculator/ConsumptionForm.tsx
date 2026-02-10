@@ -9,7 +9,7 @@ import { CalculationInput } from '@/lib/calculator/engine';
 interface ConsumptionFormProps {
   data: CalculationInput['consumption'];
   // Simplified onChange for consumption since it's flatter
-  onDietChange: (value: any) => void;
+  onDietChange: (value: string) => void;
   onPrev: () => void;
   onCalculate: () => void;
   isCalculating: boolean;

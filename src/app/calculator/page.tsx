@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RotateCcw, Car, Zap, Utensils, Share2, BarChart } from 'lucide-react';
-import { calculateCarbonFootprint, CalculationInput } from '@/lib/calculator/engine';
+import { calculateCarbonFootprint, CalculationInput, CarbonResult } from '@/lib/calculator/engine';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { TransportForm } from '@/components/calculator/TransportForm';
@@ -18,7 +18,7 @@ const COLORS = ['#2E7D32', '#FF9800', '#2196F3']; // Green, Orange, Blue
 
 export default function CalculatorPage() {
   const [activeTab, setActiveTab] = useState('transport');
-  const [result, setResult] = useState<{ total: number, breakdown: any } | null>(null);
+  const [result, setResult] = useState<CarbonResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
 
   // Initial State
@@ -39,13 +39,13 @@ export default function CalculatorPage() {
 
   const [formData, setFormData] = useState<CalculationInput>(initialFormState);
 
-  const handleInputChange = (category: keyof CalculationInput, subCategory: string, field: string, value: any) => {
+  const handleInputChange = (category: keyof CalculationInput, subCategory: string, field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [category]: {
         ...prev[category],
         [subCategory]: {
-          ...(prev[category] as any)[subCategory],
+          ...(prev[category] as Record<string, unknown>)[subCategory] as Record<string, unknown>,
           [field]: value
         }
       }
@@ -168,7 +168,7 @@ export default function CalculatorPage() {
               <TabsContent value="consumption">
                 <ConsumptionForm 
                   data={formData.consumption}
-                  onDietChange={(val) => setFormData(prev => ({...prev, consumption: { diet: val }}))}
+                  onDietChange={(val) => setFormData(prev => ({...prev, consumption: { diet: val as "meatHeavy" | "balanced" | "vegetarian" }}))}
                   onPrev={() => setActiveTab('energy')}
                   onCalculate={calculate}
                   isCalculating={isCalculating}

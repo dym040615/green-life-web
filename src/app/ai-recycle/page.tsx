@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, CheckCircle2, AlertTriangle, Trash2, HelpCircle, Image as ImageIcon } from 'lucide-react';
@@ -10,8 +10,18 @@ import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 
+// 定义回收分类接口
+interface RecycleCategory {
+  name: string;
+  type: string;
+  color: string;
+  advice: string;
+  icon: ReactNode;
+  probability?: number;
+}
+
 // 定义回收分类映射
-const RECYCLE_MAP: Record<string, any> = {
+const RECYCLE_MAP: Record<string, RecycleCategory> = {
   'water bottle': { name: '塑料瓶', type: '可回收物', color: 'bg-blue-100 text-blue-700 border-blue-200', advice: '请倒空瓶内液体，压扁后投入蓝色回收桶。', icon: <CheckCircle2 className="h-6 w-6 text-blue-600" /> },
   'carton': { name: '纸箱', type: '可回收物', color: 'bg-blue-100 text-blue-700 border-blue-200', advice: '请拆开压平，保持干燥，投入纸类回收箱。', icon: <CheckCircle2 className="h-6 w-6 text-blue-600" /> },
   'banana': { name: '香蕉皮', type: '厨余垃圾', color: 'bg-green-100 text-green-700 border-green-200', advice: '属于易腐垃圾，请沥干水分投入绿色垃圾桶。', icon: <Trash2 className="h-6 w-6 text-green-600" /> },
@@ -24,13 +34,13 @@ const RECYCLE_MAP: Record<string, any> = {
 };
 
 // 默认未知分类
-const UNKNOWN_CATEGORY = { name: '未知物品', type: '需人工判断', color: 'bg-gray-100 text-gray-700 border-gray-200', advice: 'AI 暂时无法识别此物品，请参考当地分类指南。', icon: <HelpCircle className="h-6 w-6 text-gray-600" /> };
+const UNKNOWN_CATEGORY: RecycleCategory = { name: '未知物品', type: '需人工判断', color: 'bg-gray-100 text-gray-700 border-gray-200', advice: 'AI 暂时无法识别此物品，请参考当地分类指南。', icon: <HelpCircle className="h-6 w-6 text-gray-600" /> };
 
 export default function AIRecyclePage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [modelLoading, setModelLoading] = useState(true);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<RecycleCategory | null>(null);
   const [model, setModel] = useState<mobilenet.MobileNet | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -96,7 +106,6 @@ export default function AIRecyclePage() {
       if (predictions && predictions.length > 0) {
         // 2. 匹配分类
         let match = null;
-        let bestProb = 0;
         let detectedName = predictions[0].className;
 
         // 遍历预测结果寻找匹配
@@ -291,7 +300,7 @@ export default function AIRecyclePage() {
                       <Loader2 className="h-8 w-8 text-muted-foreground/30 animate-spin-slow" />
                     </div>
                     <h3 className="text-lg font-medium mb-2">等待分析结果</h3>
-                    <p className="max-w-xs mx-auto">请先上传一张物品照片，点击"开始识别"按钮。</p>
+                    <p className="max-w-xs mx-auto">请先上传一张物品照片，点击&ldquo;开始识别&rdquo;按钮。</p>
                   </div>
                 </Card>
               </motion.div>

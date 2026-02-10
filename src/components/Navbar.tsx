@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { Leaf, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
 import { AuthButton } from './AuthButton';
 import { motion, AnimatePresence } from 'framer-motion';
 

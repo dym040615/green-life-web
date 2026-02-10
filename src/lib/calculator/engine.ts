@@ -36,7 +36,16 @@ export interface CalculationInput {
   };
 }
 
-export function calculateCarbonFootprint(input: CalculationInput) {
+export interface CarbonResult {
+  total: number;
+  breakdown: {
+    transport: number;
+    energy: number;
+    consumption: number;
+  };
+}
+
+export function calculateCarbonFootprint(input: CalculationInput): CarbonResult {
   let total = 0;
   const breakdown = {
     transport: 0,

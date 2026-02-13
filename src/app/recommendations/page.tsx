@@ -84,19 +84,18 @@ export default function RecommendationsPage() {
     // Update local state optimistically
     setCredits(prev => prev + amount);
 
-    const { error } = await supabase.from('profiles').update({ credits: credits + amount }).eq('id', user.id);
+    // Use RPC to securely add credits
+    const { error } = await supabase.rpc('add_credits', {
+      amount: amount,
+      description: description
+    });
     
     if (!error) {
-      await supabase.from('credit_transactions').insert({
-        user_id: user.id,
-        amount: amount,
-        type: 'earn',
-        description: description
-      });
       toast.success(`恭喜！${description}，获得 ${amount} 积分`);
     } else {
+      console.error('Add credits error:', error);
       setCredits(prev => prev - amount); // Rollback
-      toast.error('积分更新失败');
+      toast.error('积分更新失败: ' + error.message);
     }
   };
 
@@ -105,8 +104,20 @@ export default function RecommendationsPage() {
       toast.error('请先登录');
       return;
     }
-    if (credits < item.points_cost) {
-      toast.error('积分不足');
+
+    // Double check credits from server before redeeming
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('credits')
+      .eq('id', user.id)
+      .single();
+
+    const currentServerCredits = profileData?.credits || 0;
+
+    if (currentServerCredits < item.points_cost) {
+      toast.error(`积分不足 (服务器: ${currentServerCredits}, 需要: ${item.points_cost})`);
+      // Sync local state
+      setCredits(currentServerCredits);
       return;
     }
 
@@ -114,9 +125,12 @@ export default function RecommendationsPage() {
 
     if (error) {
       toast.error('兑换失败: ' + error.message);
+      // Re-fetch credits on error to ensure sync
+      fetchCredits(user.id);
     } else {
       toast.success(`成功兑换 ${item.title}！`);
       setCredits(prev => prev - item.points_cost);
+      fetchCredits(user.id);
       fetchMallItems(); // Refresh stock
     }
   };
